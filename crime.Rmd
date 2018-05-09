@@ -9,18 +9,18 @@ output: html_document
 knitr::opts_chunk$set(prompt=TRUE, comment="", echo=T)
 ```
 
-##Introduction / Objective
+## Introduction / Objective
 In this project, we will utilize, visualize, and analyze data from the [Crime Data from 2010 to Present](https://data.lacity.org/A-Safe-City/Crime-Data-from-2010-to-Present/y8tr-7khq) dataset. The dataset reflects incidents of crime in the City of Los Angeles dating back to 2010. Before any preprocessing, there are approximately 1.73 million rows and 26 columns in the dataset; each row represents a crime incident.  
 
 After some initial data observation, we will finally create some classification learning models to predict what crime will be committed given certain predictors.
 
-##Data Exploration
+## Data Exploration
 ```{r}
 crimes = read.csv('/Users/chanel/School/383_cst/projects/crime/crime-predictor/crime.csv', na.strings=c('NA', 'N/A', '<NA>'))
 names(crimes) = tolower(names(crimes))
 ```
 
-##Preprocessing / Cleaning
+## Preprocessing / Cleaning
 The following is a table of columns that were removed from the dataset and the reasons why they were removed.  
 
 column removed      | description of column                 | reason for removing
@@ -58,7 +58,7 @@ crimes[['address']] = NULL
 crimes[['cross.street']] = NULL
 ```
 
-##Missing Data
+## Missing Data
 After removing unneeded columns, we calculated the percentages of NA values in each column in the dataset. (If there are no NA values in the column, this information was not displayed.) 8% of the rows in the dataset did not have values for the __victim.age__ column. These rows were omitted from the dataset.
 ```{r}
 pct.na = apply(crimes, 2, function(x) round(mean(is.na(x)) * 100, 3))
@@ -67,7 +67,7 @@ data.frame(pct.na)
 crimes = na.omit(crimes)
 ```
 
-##Preprocessing (continued): month, day, year, and hour
+## Preprocessing (continued): month, day, year, and hour
 Here, __month__, __day__, __year__, and __hour__ columns were created after being derived from the __date.occurred__ and __time.occurred__ columns. These new columns represent the date and time that the crime occurred. Finally, crimes that occurred during the years 2010 - 2013 (inclusive) will be removed from the dataset, resulting in a dataset with crimes occurring in the past 5 years only.
 ```{r}
 crimes$month = as.numeric(substr(crimes$date.occurred,1,2))
@@ -90,7 +90,7 @@ rows = which(nchar(crimes$time.occurred) == 4)
 crimes$hour[rows] = as.numeric(substr(crimes$time.occurred[rows],1,2))
 ```
 
-##Preprocessing (continued): Categorizing crime.code.description, weapon.code.description, and victim.descent
+## Preprocessing (continued): Categorizing crime.code.description, weapon.code.description, and victim.descent
 Currently, there are 143 unique values in the __crime.code.description__. In an effort to simplify classification, values in this column will be categorized into 1 of 4 groups: i) violent crime, ii) property crime, iii) consensual crime, and iv) other (which contains white-collar crimes, organized crimes, and consensual crimes. Descriptions and examples of these different types of crime can be found in the online text, [Social Problems: Continuity and Change](https://saylordotorg.github.io/text_social-problems-continuity-and-change/s11-02-types-of-crime.html). It is important to note that we lose some valuable information when condensing 143 crime descriptions into 4 categories.
 ```{r}
 crimes$crime.code.description = tolower(crimes$crime.code.description)
