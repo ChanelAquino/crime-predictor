@@ -14,7 +14,7 @@ In this project, we will utilize, visualize, and analyze data from the [Crime Da
 
 After some initial data observation, we will finally create some classification learning models to predict what crime will be committed given certain predictors.
 
-## Data Exploration
+## Data 
 ```{r}
 crimes = read.csv('/Users/chanel/School/383_cst/projects/crime/crime-predictor/crime.csv', na.strings=c('NA', 'N/A', '<NA>'))
 names(crimes) = tolower(names(crimes))
