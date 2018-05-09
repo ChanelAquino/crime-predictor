@@ -191,3 +191,40 @@ crimes$victim.descent[crimes$victim.descent == 'x'] = 'other/unknown'
 crimes$victim.descent = factor(crimes$victim.descent)
 ```
 
+## Data Exploration
+```{r}
+# TODO: everyone
+```
+
+## kNN Classification Model 1
+```{r}
+# TODO: chanel + assessment
+```
+
+## kNN Classification Model 2
+```{r}
+# TODO: chanel + assessment
+```
+
+## Classification Tree Model 1
+```{r}
+# TODO: dario + assessment
+```
+
+## Classification Tree Model 1
+```{r}
+# TODO: dario + assessment
+```
+
+## Naive Bayes Classification Model 1
+```{r}
+# TODO: evert + assessment
+```
+
+## Naive Bayes Classification Model 2
+```{r}
+# TODO: evert + assessment
+```
+
+## Conclusion
+<!-- TODO: everyone -->
