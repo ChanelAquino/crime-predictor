@@ -214,7 +214,6 @@ boxplot(victim.age ~ victim.descent, data=crimes, main='victim ages and descent'
 
 The barplot belows shows the frequency distribution of crimes committed by the hour. Less crimes were committed during the hours between 4 and 5 (i.e., 4am and 5am). It is interesting to note the visual anomaly at hour 12 (i.e., 12pm), when most crimes were commited.
 ```{r}
-par(mfrow=c(1,2))
 barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red', las=1)
 ```
 
@@ -279,7 +278,6 @@ y.violent = dnorm(x, mean=nb.age.info['violent',1], sd=nb.age.info['violent',2])
 y.other = dnorm(x, mean=nb.age.info['other',1], sd=nb.age.info['other',2])
 y.consensual = dnorm(x, mean=nb.age.info['consensual',1], sd=nb.age.info['consensual',2])
 
-par(mfrow=c(1:2))
 plot(x, y.violent, main='NB estimate of age distribution', col='red', xlab='victim age')
 grid()
 par(new=T)
