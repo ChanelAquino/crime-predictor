@@ -220,14 +220,12 @@ boxplot(victim.age ~ victim.descent, data=crimes, main='victim ages and descent'
 barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red', las=1)
 ```
 
-## kNN Classification Model 1
+## Training / Test Sets
 ```{r}
-# TODO: chanel + assessment
-```
-
-## kNN Classification Model 2
-```{r}
-# TODO: chanel + assessment
+set.seed(123)
+tr.rows = sample(1:nrow(crimes), .75*nrow(crimes))
+tr.dat = crimes[tr.rows,]
+te.dat = crimes[-tr.rows,]
 ```
 
 ## Classification Tree Model 1
@@ -242,12 +240,13 @@ barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red',
 
 ## Naive Bayes Classification Model 1
 ```{r}
-# TODO: evert + assessment
+library(e1071)
+  # TODO: evert + assessment
 ```
 
 ## Naive Bayes Classification Model 2
 ```{r}
-# TODO: evert + assessment
+
 ```
 
 ## Conclusion
