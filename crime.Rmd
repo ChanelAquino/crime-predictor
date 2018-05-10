@@ -88,6 +88,10 @@ crimes$hour[rows] = as.numeric(substr(crimes$time.occurred[rows],1,1))
 
 rows = which(nchar(crimes$time.occurred) == 4)
 crimes$hour[rows] = as.numeric(substr(crimes$time.occurred[rows],1,2))
+
+crimes[['date.reported']] = NULL
+crimes[['date.occurred']] = NULL
+crimes[['time.occurred']] = NULL
 ```
 
 ## Preprocessing (continued): Categorizing crime.code.description, weapon.code.description, and victim.descent
@@ -126,9 +130,10 @@ crimes$crime.type[grepl(paste(patterns, collapse = "|"), crimes$crime.code.descr
 crimes$crime.type[is.na(crimes$crime.type)] = "other"
 
 crimes$crime.type = factor(crimes$crime.type)
+crimes[['crime.code.description']] = NULL
 ```
 
-Similary, the 79 unique values in the __weapon.description__ column were used to create a new column, __weapon.type__ that contains 1 of 6 values: i) projectile, ii) edged, iii) impact, and iv) other (which includes chemical weapons and weapons of mass destruction). Details on these types of weapons can be found on the [Black Belt](https://blackbeltmag.com/martial-arts-weapons/5-categories-of-modern-weapons-how-to-incorporate-them-into-your-reality-based-self-defense-training/) website. Again, it is important to note that we lose some valuable information when condensing 79 weapon descriptions into 6 categories.
+Similary, the 79 unique values in the __weapon.description__ column were used to create a new column, __weapon.type__ that contains 1 of 4 values: i) projectile, ii) edged, iii) impact, and iv) other (which includes chemical weapons and weapons of mass destruction). Details on these types of weapons can be found on the [Black Belt](https://blackbeltmag.com/martial-arts-weapons/5-categories-of-modern-weapons-how-to-incorporate-them-into-your-reality-based-self-defense-training/) website. Again, it is important to note that we lose some valuable information when condensing 79 weapon descriptions into 4 categories.
 ```{r}
 crimes$weapon.description = tolower(crimes$weapon.description)
 crimes$weapon.type = NA
@@ -156,9 +161,10 @@ crimes$weapon.type[grepl(paste(patterns, collapse = "|"), crimes$weapon.descript
 crimes$weapon.type[is.na(crimes$weapon.type)] = "other"
 
 crimes$weapon.type = factor(crimes$weapon.type)
+crimes[['weapon.description']] = NULL
 ```
 
-Finally, the __victim.descent__ column was altered to contain the following values: asian, black, hispanic/latin, american indian/native, pacific islander, white, other/unknown. 
+Finally, the __victim.descent__ column was altered to contain the following values: asian, black, hispanic/latin, american indian/native, pacific islander, white, other/unknown. The __victim.sex__ column was also altered to contain the following values: male, female, and other/unknown.
 ```{r}
 crimes$victim.descent = tolower(crimes$victim.descent)
 crimes$victim.descent[crimes$victim.descent == 'a'] = 'asian'
@@ -189,11 +195,29 @@ crimes$victim.descent[crimes$victim.descent == ''] = 'other/unknown'
 crimes$victim.descent[crimes$victim.descent == 'x'] = 'other/unknown'
 
 crimes$victim.descent = factor(crimes$victim.descent)
+
+crimes$victim.sex = tolower(crimes$victim.sex)
+crimes$victim.sex[crimes$victim.sex == 'm'] = 'male'
+crimes$victim.sex[crimes$victim.sex == 'f'] = 'female'
+crimes$victim.sex[crimes$victim.sex == 'x'] = 'other/unknown'
+crimes$victim.sex[crimes$victim.sex == 'h'] = 'other/unknown'
+crimes$victim.sex[crimes$victim.sex == ''] = 'other/unknown'
+crimes$victim.sex = factor(crimes$victim.sex)
 ```
 
 ## Data Exploration
 ```{r}
-# TODO: everyone
+plot(density(crimes$victim.age), main='density of victim ages', xlab='age', col='red', las=1)
+grid()
+```
+
+```{r}
+par(mar=c(9,5,5,5))
+boxplot(victim.age ~ victim.descent, data=crimes, main='victim ages and descent', las=2, ylab='age', col='red')
+```
+
+```{r}
+barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red', las=1)
 ```
 
 ## kNN Classification Model 1
