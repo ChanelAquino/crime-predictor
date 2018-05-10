@@ -22,7 +22,8 @@ library(maptree)
 library(caret)
 source("https://raw.githubusercontent.com/grbruns/cst383/master/lin-regr-util.R")
 source("https://raw.githubusercontent.com/grbruns/cst383/master/class-util.R")
-crimes = read.csv('~/crime-predictor/crimes.csv', na.strings=c('NA', 'N/A', '<NA>'))
+#crimes = read.csv('~/crime-predictor/crimes.csv', na.strings=c('NA', 'N/A', '<NA>'))
+crimes <- read.csv('crimes.csv',na.strings=c('NA', 'N/A', '<NA>'))
 names(crimes) = tolower(names(crimes))
 ```
 
@@ -256,9 +257,25 @@ prp(treeFit, extra=106, varlen=5,
 ```
 
 ## Naive Bayes Classification Model 1
+
+For this first model, we decided to use area.name, victim.sex, premise.description and victim.descent to predict the crime.type.  The model is trained on 80% of the data and tested on the remaining 20%.
 ```{r}
 library(e1071)
 # TODO: evert + assessment
+
+#Creating Test and Training Data
+set.seed(123)
+tr.rows = sample(1:nrow(crimes), .80*nrow(crimes))
+tr.dat = crimes[tr.rows,]
+te.dat = crimes[-tr.rows,]
+
+#Creating model
+nb.fit1 = naiveBayes(crime.type ~ area.name + victim.sex + premise.description + victim.descent, data=tr.dat, type='raw')
+
+#Accuracy
+predicted = predict(nb.fit1, te.dat)
+actual = te.dat$crime.type
+mean(predicted == actual)
 ```
 
 ## Training / Test Sets
