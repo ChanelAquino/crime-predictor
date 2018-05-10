@@ -206,21 +206,31 @@ crimes$victim.sex = factor(crimes$victim.sex)
 ```
 
 ## Data Exploration
+The boxplot below shows the age distribution of victims by their descent. For instance, victims of American Indian/Native descent were, on average, about 24-25 years old. Victims of Asian descent were, on average, about 40 years old.
 ```{r}
-plot(density(crimes$victim.age), main='density of victim ages', xlab='age', col='red', las=1)
-grid()
-```
-
-```{r}
-par(mar=c(9,5,5,5))
+par(mar=c(10,5,5,5))
 boxplot(victim.age ~ victim.descent, data=crimes, main='victim ages and descent', las=2, ylab='age', col='red')
 ```
 
+The barplot belows shows the frequency distribution of crimes committed by the hour. Less crimes were committed during the hours between 4 and 5 (i.e., 4am and 5am). It is interesting to note the visual anomaly at hour 12 (i.e., 12pm), when most crimes were commited.
 ```{r}
+par(mfrow=c(1,2))
 barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red', las=1)
 ```
 
+The quadruple density plot below further breaks down crimes by the hour, by the type of crime it was. Overall, the plots below follow the same pattern as the barplot above. Again, we see a significant increase in crimes committed during the afternoon. The plot for property crimes shows a very interesting pattern than noticeably fluctuates in between the hours of about 13 and 22 (i.e., 1pm and 10pm).
+```{r}
+# quadruple density plot for hour
+plot(density(crimes$hour[crimes$crime.type == 'property']), main='density plots for crime hour', col='green', xlab='hour')
+grid()
+lines(density(crimes$hour[crimes$crime.type == 'violent']), col='red')
+lines(density(crimes$hour[crimes$crime.type == 'other']), col='orange')
+lines(density(crimes$hour[crimes$crime.type == 'consensual']), col='blue')
+legend('topleft', fill=c('green', 'red', 'orange', 'blue'), legend=c('property', 'violent', 'other', 'consensual'))
+```
+
 ## Training / Test Sets
+Below, training and testing sets are created, where the training set is composed of 75% of the original dataset.
 ```{r}
 set.seed(123)
 tr.rows = sample(1:nrow(crimes), .75*nrow(crimes))
@@ -244,9 +254,93 @@ library(e1071)
   # TODO: evert + assessment
 ```
 
-## Naive Bayes Classification Model 2
+## Naive Bayes Classification Model 2: victim.descent, and victim.age
+A second Naive Bayes classification model was created, this time using __victim.descent__ and __victim.age__ to predict __crime.type__. From the apriori of the model, we can see that property crimes were the highest types of crime committed.
 ```{r}
+nb.fit2 = naiveBayes(crime.type ~ victim.descent + victim.age, data=tr.dat)
+nb.fit2$apriori
+```
 
+Below are mean and standard deviation values for victim ages categorized by the crime type.
+```{r}
+nb.age.info = nb.fit2$tables$victim.age
+nb.age.info
+```
+
+### Feature Distribution for NB Model 2
+Using the tables provided in the fit, we can show the feature distributions below.  
+
+The first pair of graphs show the density distribution of victims' ages both from the training dataset (right) and as estimates from the Naive Bayes fit (left).
+```{r}
+# density plot for victim.age, from naive bayes
+x = crimes$victim.age
+y.property = dnorm(x, mean=nb.age.info['property',1], sd=nb.age.info['property',2])
+y.violent = dnorm(x, mean=nb.age.info['violent',1], sd=nb.age.info['violent',2])
+y.other = dnorm(x, mean=nb.age.info['other',1], sd=nb.age.info['other',2])
+y.consensual = dnorm(x, mean=nb.age.info['consensual',1], sd=nb.age.info['consensual',2])
+
+par(mfrow=c(1:2))
+plot(x, y.violent, main='NB estimate of age distribution', col='red', xlab='victim age')
+grid()
+par(new=T)
+plot(x, y.property, col='green', main='NB estimate of age distribution', xlab='victim age', xaxt='n')
+par(new=T)
+plot(x, y.other, col='orange', main='NB estimate of age distribution', xlab='victim age', xaxt='n')
+par(new=T)
+plot(x, y.consensual, col='blue', main='NB estimate of age distribution', xlab='victim age', xaxt='n')
+
+# quadruple density plot for victim.age, from training dataset
+plot(density(crimes$victim.age[crimes$crime.type == 'property']), main='density plots for victim age, from training data', col='green', xlab='victim age')
+grid()
+lines(density(crimes$victim.age[crimes$crime.type == 'violent']), col='red')
+lines(density(crimes$victim.age[crimes$crime.type == 'other']), col='orange')
+lines(density(crimes$victim.age[crimes$crime.type == 'consensual']), col='blue')
+legend('topright', fill=c('green', 'red', 'orange', 'blue'), legend=c('property', 'violent', 'other', 'consensual'))
+```
+
+
+Before performing a similar process for victim descent, we first graphed a quadruple density plot that helps visualize victims' descent by the type of crime that was committed. We can see that for people of African/African American (i.e., 'black'), Hispanic/Latin, or 'white' descent were victims for mostly some type of violent crime, while people of Asian or other/unknown descent were victims for some type of property crime. Another interesting observation is that people of Pacific Islander or American Indian/Native descent experienced virtually no crimes compared to victims of other descents. (As we don't know the population demographic for the city of LA, this should be taken with a grain of salt.)
+```{r}
+# quadruple density plot for victim.descent, from training dataset
+par(mar=c(10,5,5,5))
+plot(density(as.numeric(crimes$victim.descent[crimes$crime.type == 'violent'])), main='density plots for victim descent', col='red', xlab='', xaxt='n')
+grid()
+lines(density(as.numeric(crimes$victim.descent[crimes$crime.type == 'consensual'])), col='blue')
+lines(density(as.numeric(crimes$victim.descent[crimes$crime.type == 'property'])), col='green')
+lines(density(as.numeric(crimes$victim.descent[crimes$crime.type == 'other'])), col='orange')
+axis(1, labels=c('pacific islander', 'asian', 'black', 'hispanic/latin', 'other/unknown', 'american indian/native', 'white'), at=1:7, las=2)
+legend('topright', fill=c('green', 'red', 'orange', 'blue'), legend=c('property', 'violent', 'other', 'consensual'), cex=0.75)
+```
+
+Below are probabilities for victim descent categorized by the crime type.
+```{r}
+nb.descent.info = nb.fit2$tables$victim.descent
+nb.descent.info
+```
+
+Below is a side-by-side barplot of victim descents, from the training dataset, by the type of crime that was committed. Across the board, we can see that people of Hispanic/Latin descent were the victims of most crimes. People of 'white' descent were the secondmost victims of crimes committed.
+```{r}
+# side by side barplots for victim descent, frome training dataset
+colors = c('bisque2', 'red', 'orange', 'green', 'blue', 'yellow', 'blueviolet')
+property = table(crimes$victim.descent[crimes$crime.type == 'property'])
+violent = table(crimes$victim.descent[crimes$crime.type == 'violent'])
+other = table(crimes$victim.descent[crimes$crime.type == 'other'])
+consensual = table(crimes$victim.descent[crimes$crime.type == 'consensual'])
+tbls = cbind(property, violent, other, consensual)
+barplot(tbls, main='victim descent by crime type, from training data', col=colors, beside=T, las=2)
+legend('topright', fill=colors, legend=sort(unique(crimes$victim.descent)), cex=0.55)
+```
+
+Finally, the same values as above were estimated using the Naive Bayes classifier. Overall, the same patterns occur, where people of Hispanic/Latin descent were victims of most crimes.
+```{r}
+# side by side barplots for victim descent, from naive bayes
+property = nb.descent.info['property',]
+violent = nb.descent.info['violent',]
+other = nb.descent.info['other',]
+consensual = nb.descent.info['consensual',]
+tbls = cbind(property, violent, other, consensual)
+barplot(tbls, main='NB estimate of victim descent by crime type', col=colors, beside=T, las=2, ylab='probability')
+legend('topleft', fill=colors, legend=sort(unique(crimes$victim.descent)), cex=0.35)
 ```
 
 ## Conclusion
