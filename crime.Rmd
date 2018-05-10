@@ -243,11 +243,27 @@ split = split_data(crimes.small)
 tr_dat = split[[1]]
 te_dat = split[[2]]
 
-treeFit = rpart(crime.type~ area.name + victim.sex + victim.age ,data=tr_dat, method="class")
+treeFit = rpart(crime.type ~ area.name + victim.age + weapon.type  ,data=te_dat, method="class")
 
 prp(treeFit, extra=106, varlen=5,
  main="Classification for Crime Type",
  box.col=c("palegreen", "pink")[treeFit$frame$yval])
+```
+
+```{r}
+predicted = predict(treeFit, te_dat, class="class")
+#predicted = as.data.frame(predicted)
+#y = apply(predicted,2,function(x) max(x))
+#predicts = predicted[,names(y)[which.max(y)]]
+actuals = te_dat$crime.type
+
+conf = table(predicted, actuals)
+conf
+```
+
+```{r}
+ succ_rate = mean(predicted == actuals)
+ round(succ_rate, 3)
 ```
 
 ## Classification Tree Model 2

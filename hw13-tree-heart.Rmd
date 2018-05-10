@@ -9,8 +9,6 @@ output: html_document
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(prompt=TRUE, comment="", echo=TRUE)
 ```
-
-
 ###Introduction
 With this report, heart disease data will be analyzed along with tree classification to predict whether a person has heart disease or not.
 
