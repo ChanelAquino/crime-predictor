@@ -267,12 +267,13 @@ prp(treeFit, extra=106, varlen=5,
 ## Naive Bayes Classification Model 1
 ```{r}
 library(e1071)
-  # TODO: evert + assessment
+# TODO: evert + assessment
 ```
 
 ## Naive Bayes Classification Model 2: victim.descent, and victim.age
 A second Naive Bayes classification model was created, this time using __victim.descent__ and __victim.age__ to predict __crime.type__. From the apriori of the model, we can see that property crimes were the highest types of crime committed.
 ```{r}
+# TODO: chanel + assessment
 nb.fit2 = naiveBayes(crime.type ~ victim.descent + victim.age, data=tr.dat)
 nb.fit2$apriori
 ```
