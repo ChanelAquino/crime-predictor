@@ -224,6 +224,13 @@ The barplot belows shows the frequency distribution of crimes committed by the h
 barplot(table(crimes$hour), main='hour crime committed', xlab='hour', col='red', las=1)
 ```
 
+As previously noted the hour of the day were most crimes occur.  The following barplot will depict the total number of crimes commited for the number day of the month.
+```{r}
+barplot(table(crimes$month), main="Day out of the month crime commited", xlab="Day",col="firebrick")
+```
+As shown from the barplot, it is interesting to see that the total number of crimes are about the same for each day of the month.  It is also important to notice the anomaly for the first day of each month.  The total number of crimes on the first occur one fourth additional times than the rest of days.  It is also interesting to note that the least ammount of crimes happen on the 31st.  Which makes sense for not all months have 31 days.
+
+
 The quadruple density plot below further breaks down crimes by the hour, by the type of crime it was. Overall, the plots below follow the same pattern as the barplot above. Again, we see a significant increase in crimes committed during the afternoon. The plot for property crimes shows a very interesting pattern than noticeably fluctuates in between the hours of about 13 and 22 (i.e., 1pm and 10pm).
 ```{r}
 # quadruple density plot for hour
@@ -235,26 +242,86 @@ lines(density(crimes$hour[crimes$crime.type == 'consensual']), col='blue')
 legend('topleft', fill=c('green', 'red', 'orange', 'blue'), legend=c('property', 'violent', 'other', 'consensual'))
 ```
 
-## Classification Tree Model 1
+
+###Victim sex based on crime type
+The following plot will depict which sex is more susceptible to the different types of crimes.
+```{r}
+par(mfrow=c(2,2))
+par(mar=c(3,4,3,.5))
+plot(crimes$victim.sex[crimes$crime.type == "property"], main="Property Crime Type", col="firebrick",ylab="Number of Crimes")
+plot(crimes$victim.sex[crimes$crime.type == "violent"], main="Violent Crime Type",col="firebrick",ylab="Number of Crimes")
+plot(crimes$victim.sex[crimes$crime.type == "consensual"],main="Consensual Crime Type",col="firebrick",ylab="Number of Crimes")
+plot(crimes$victim.sex[crimes$crime.type == "other"], main="Other Crime Type",col="firebrick",ylab="Number of Crimes")
+```
+
+From the graphs, it is evident to see that for property crimes, males were afflicted the most.  But for the the rest of the different crime types, women were afflicted the most. Which in overall, women are more susceptible to most crimes compared to the other sexes.
+
+## Classification Tree Model 
 ```{r}
 # TODO: dario + assessment
 set.seed(132)
-crimes.small = crimes[crimes$year %in% c(2018),]
-split = split_data(crimes.small)
-tr_dat = split[[1]]
-te_dat = split[[2]]
+crimes.small = crimes[crimes$year %in% c(2016,2017),]
+tr.rows = sample(1:nrow(crimes), .75*nrow(crimes))
+tr_dat = crimes[tr.rows,]
+te_dat = crimes[-tr.rows,]
 
-treeFit = rpart(crime.type~ area.name + victim.sex + victim.age ,data=tr_dat, method="class")
+treeFit = rpart(crime.type ~  month + victim.sex+ victim.age + weapon.type  ,data=tr_dat, method="class")
 
-prp(treeFit, extra=106, varlen=5,
+prp(treeFit, extra=104, varlen=-10,
  main="Classification for Crime Type",
  box.col=c("palegreen", "pink")[treeFit$frame$yval])
 ```
 
-## Classification Tree Model 2
+As we can see from the model above, the classification tree is only displaying two nodes.  From the information obtained from the fit, it was evident that the most important variable type was weapon.type(99) and the second most important variable was victim.age(1).  Which is why on the classification tree weapon.type is the only visible predictor shown.
+
+
+From the confusion matrix, it is evident that there was no prediction made for consensual and other.
 ```{r}
-# TODO: dario + assessment
+predicted = predict(treeFit, te_dat, type="class")
+actuals = te_dat$crime.type
+conf = table(predicted, actuals)
+conf
 ```
+
+It can also be noted that the accuracy of our model is about 82%, which is quite good.
+```{r}
+ x =table(as.data.frame(predicted))
+ succ_rate = mean(predicted == actuals)
+ round(succ_rate, 3)
+```
+
+From the values obtained from the predictions obtained from the tree classification, it was interesting to notice the total number of crimes for each category.
+
+```{r}
+y = as.data.frame(predicted)
+options(scipen=5)
+plot(y, main="Number of Crimes Predicted for Each Category from Decision Tree", xlab="Crime",ylab="Number of Ocurrences", col="firebrick")
+```
+
+As noted from the plot above, it was interesting to see that the there were no predictions made for 'consensual' and 'other'.  There is about 150k 'violent' crimes, but it is outstanding to see that for 'property' the total number of crimes is almost 400k.
+
+
+Another interesting to note is the purity of node from the classification tree.
+```{r}
+# compute Gini index for a node (factor of 2 not used)
+gini_index = function(v) {
+  tbl = table(v)
+  probs = tbl/sum(tbl)
+  terms = sapply(probs, function(p) p * (1 - p))
+  return(sum(terms))
+}
+node = crimes[,c("crime.type","victim.age","victim.sex","weapon.type")]
+node.purity = gini_index(node$crime.type)
+node.purity
+```
+
+From the classification tree, using month, victim.sex, victim.age, weapon.type as predictors, it is predicted that the crime type is Property.
+
+```{r}
+table(crimes$crime.type)/nrow(crimes)
+```
+
+When comparing the training results, it can be seen that the probablity of property is bigger than the rest. Which correlates to the predictions from classification which predicted crime type to be property.
 
 ## Naive Bayes Classification Model 1
 
