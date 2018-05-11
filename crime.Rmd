@@ -238,38 +238,37 @@ legend('topleft', fill=c('green', 'red', 'orange', 'blue'), legend=c('property',
 ```{r}
 # TODO: dario + assessment
 set.seed(132)
-crimes.small = crimes[crimes$year %in% c(2018),]
-split = split_data(crimes.small)
-tr_dat = split[[1]]
-te_dat = split[[2]]
+crimes.small = crimes[crimes$year %in% c(2016,2017),]
+tr.rows = sample(1:nrow(crimes), .75*nrow(crimes))
+tr_dat = crimes[tr.rows,]
+te_dat = crimes[-tr.rows,]
 
-treeFit = rpart(crime.type ~ area.name + victim.age + weapon.type  ,data=tr_dat, method="class")
+treeFit = rpart(crime.type ~  month + victim.sex+ victim.age + weapon.type  ,data=tr_dat, method="class")
 
-prp(treeFit, extra=106, varlen=5,
+prp(treeFit, extra=104, varlen=-10,
  main="Classification for Crime Type",
  box.col=c("palegreen", "pink")[treeFit$frame$yval])
 ```
 
-```{r}
-predicted = predict(treeFit, te_dat, class="class")
-predicted = as.data.frame(predicted)
-#y = apply(predicted,2,function(x) max(x))
-#predicts = predicted[,names(y)[which.max(y)]]
-actuals = te_dat$crime.type
+As we can see from the model above, the classification tree is only displaying three nodes.
 
+Confusion matrix for model
+```{r}
+predicted = predict(treeFit, te_dat, type="class")
+actuals = te_dat$crime.type
 conf = table(predicted, actuals)
 conf
 ```
 
+accuracy of model
 ```{r}
- #succ_rate = mean(predicted == actuals)
- #round(succ_rate, 3)
+ succ_rate = mean(predicted == actuals)
+ round(succ_rate, 3)
 ```
 
-## Classification Tree Model 2
-```{r}
-# TODO: dario + assessment
-```
+
+
+
 
 ## Naive Bayes Classification Model 1
 ```{r}
