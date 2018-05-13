@@ -15,7 +15,7 @@ In this project, we will utilize, visualize, and analyze data from the [Crime Da
 After some initial data observation, we will finally create some classification learning models to predict what crime will be committed given certain predictors.
 
 ## Data 
-```{r}
+```{r warning=FALSE}
 library(rpart)
 library(rpart.plot)
 library(maptree)
@@ -325,27 +325,9 @@ When comparing the training results, it can be seen that the probablity of prope
 
 ## Naive Bayes Classification Model 1
 
-For this first model, we decided to use area.name, victim.sex, premise.description and victim.descent to predict the crime.type.  The model is trained on 80% of the data and tested on the remaining 20%.
-```{r}
-library(e1071)
-# TODO: evert + assessment
+For this first model, we decided to use area.name and weapon.type to predict the crime.type . Even though our classification tree model had a good acuracy, wanted to see if using Naive Baye's algorithm would improve our results. 
 
-#Creating Test and Training Data
-set.seed(123)
-tr.rows = sample(1:nrow(crimes), .80*nrow(crimes))
-tr.dat = crimes[tr.rows,]
-te.dat = crimes[-tr.rows,]
-
-#Creating model
-nb.fit1 = naiveBayes(crime.type ~ area.name + victim.sex + premise.description + victim.descent, data=tr.dat, type='raw')
-
-#Accuracy
-predicted = predict(nb.fit1, te.dat)
-actual = te.dat$crime.type
-mean(predicted == actual)
-```
-
-## Training / Test Sets
+## Splitting Data
 Below, training and testing sets are created, where the training set is composed of 75% of the original dataset.
 ```{r}
 set.seed(123)
@@ -353,6 +335,76 @@ tr.rows = sample(1:nrow(crimes), .75*nrow(crimes))
 tr.dat = crimes[tr.rows,]
 te.dat = crimes[-tr.rows,]
 ```
+
+
+##Creating Model and Generating Predictions
+```{r}
+library(e1071)
+# TODO: evert + assessment
+
+#Creating model
+nb.fit1 = naiveBayes(crime.type ~ area.name + weapon.type, data=tr.dat, type='raw')
+
+#Predictions & Accuracy
+predicted = predict(nb.fit1, te.dat)
+actual = te.dat$crime.type
+paste("acurracy:",mean(predicted == actual))
+table(actual, predicted)
+
+```
+ 
+Here we have our first Naive Baye's model and the predicitons it generated on our test data.
+
+###Frequency of type.crime in test data and predictions
+```{r}
+barplot(table(tr.dat$crime.type),col = "red4", main="Frequency of type.crime in training data",ylab="Number of incidents")
+
+
+barplot(table(te.dat$crime.type),col = "red4", main="Frequency of type.crime in test data",ylab="Number of incidents")
+
+
+plot(predicted,col = "red4", main="Frequency of type.crime in model",ylab="Number of incidents")
+
+```
+
+These graphs help us understand our model a little bit better.  Since the majority of the types of crime commited fall into either the "violent" class or the "property" class in our traning data, it seems like our model is only predicting from these two classes. Despite this, it is still achiving a decent accuracy.  A learning curve was produced to see if our modle had high variance or bias.
+ 
+
+###Learning Curve for NB Model 1
+```{r warning=FALSE}
+te_errs = c()
+tr_errs = c()
+te_actual = te_dat$crime.type
+tr_sizes = seq(0.4,0.9, by = 0.1)
+
+for (tr_size in tr_sizes) {
+  tr_rows=sample(1:nrow(crimes),tr_size*nrow(crimes))
+  tr_dat=crimes[tr_rows,]
+  te_dat=crimes[-tr_rows,]
+  tr_actual = tr_dat$crime.type
+  nb.fit1.lc = naiveBayes(crime.type ~ area.name + weapon.type, data=tr_dat, type='raw')
+  
+  
+  # error on training set
+   tr_predicted = predict(nb.fit1.lc, newdata=te_dat, type="class")
+   err = mean(tr_actual != tr_predicted)
+   tr_errs = c(tr_errs, err)
+   
+   # error on test set
+  te_predicted = predict(nb.fit1.lc, newdata=te_dat, type="class")
+  err = mean(te_actual != te_predicted)
+  te_errs = c(te_errs, err)
+}
+
+#Plot learning curve here
+plot(tr_errs~tr_sizes,col="orange",type="b",pch=16,ylim=c(min(tr_errs)-.01,max(te_errs)+0.01),xlab="Training Sizes", ylab="Training Errors",main="Learning Curve for factors area.name and weapon.type")
+points(te_errs~tr_sizes,col="blue",type="b",pch=18,ylim=c(min(tr_errs)-.01,max(te_errs)+0.01))
+legend("topright",legend=c("training","test"), col=c("orange","blue"),pch=c(16,18))
+
+```
+
+After analyzing several learning curves on our model, we generally see that traning error and testing error are quite similar and consistent, with testing error decreasing slightly at the end.  By the shape of the graph, we can also see that our model has some bias.  To fix this issue we can me more careful about the predictors that we use.
+
 
 ## Naive Bayes Classification Model 2: victim.descent, and victim.age
 A second Naive Bayes classification model was created, this time using __victim.descent__ and __victim.age__ to predict __crime.type__. From the apriori of the model, we can see that property crimes were the highest types of crime committed.
@@ -456,4 +508,8 @@ legend('topleft', fill=colors, legend=sort(unique(crimes$victim.descent)), cex=0
 ```
 
 ## Conclusion
-<!-- TODO: everyone -->
+
+Our goal was to generate a model that would help us predict the type of crime that was committed based on the available data.  Out of the three models that were generated, two of them gave us decent results.  From our first model (classification tree), we learned that weapon type was going to be an important factor in generating a good model.  Our second model (Naive Baye's) also used weapon type as a predictor, but this time it was combined with the area in which the crime was committed.  This model gave us a very similar result to our first model, but we felt that it was a bit more intuitive.  In our last model (Naive Baye's) we were interested to see if the demographics of the victim would be a good predictor for the type of crime that was committed.  Unfortunately, the last model did not perform as well as our previous two models.
+
+From the results of our models, we learned that one of the best predictors for what type of crime is committed, is the type of weapon that was involved.  Before this, we believed that perhaps the demographics of the victim would have been a decent indicator of the type of crimes that are committed, we assumed that perhaps certain demographics would have been more susceptible to be the victims of certain crimes.  It is important to note that this is only true for the City of Los Angeles for crimes committed during this decade.  More data and analysis from other cities would be necessary in order to make any generalizations
+
